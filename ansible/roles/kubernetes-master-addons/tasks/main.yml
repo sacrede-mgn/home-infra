@@ -123,3 +123,12 @@
       ArgoCD server is accessible via LoadBalancer at: http://{{ lb_ip.stdout }}
       Use the admin password from previous step to log in.
   tags: addons
+
+- name: "📥 Apply ApplicationSet from Git repository"
+  ansible.builtin.command: |
+    kubectl apply -f https://raw.githubusercontent.com/sacrede-mgn/home-lab/main/kubernetes/applicationset.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: appset_apply
+  changed_when: "'created' in appset_apply.stdout or 'configured' in appset_apply.stdout"
+  tags: addons
