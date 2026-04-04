@@ -3,25 +3,47 @@ kind: Application
 metadata:
   name: traefik
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
   source:
     repoURL: https://traefik.github.io/charts
-    targetRevision: 20.8.0
+    chart: traefik
+    targetRevision: v26.1.0
     helm:
       values: |
-        # ваши настройки traefik, например:
-        # ingressClass:
-        #   name: traefik
-        #   enabled: true
-        # ports:
-        #   web:
-        #     redirectTo: websecure
-        #   websecure:
-        #     tls:
-        #       enabled: true
+        service:
+          enabled: true
+          type: LoadBalancer          
+          annotations:
+            metallb.universe.tf/address-pool: public-pool # 
+            metallb.universe.tf/loadBalancerIPs: 192.168.4.241
+        ports:
+          web:
+            port: 80
+            expose: true
+          websecure:
+            port: 443
+            expose: true
+        logs:
+          access:
+            enabled: true
+            addInternals: true
+          general:
+            level: INFO
+        # Включение поддержки плагинов (необходимо для CrowdSec)
+        experimental:
+          plugins:
+            crowdsec-bouncer-traefik-plugin:
+              moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+              version: v1.3.0
+        providers:
+          kubernetesCRD:
+            enabled: true
+            allowCrossNamespace: true
+          kubernetesIngress:
+            enabled: true
+            publishedService:
+              enabled: true
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
@@ -29,3 +51,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
