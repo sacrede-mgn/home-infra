@@ -126,7 +126,7 @@
 
 - name: "📥 Apply ApplicationSet from Git repository"
   ansible.builtin.command: |
-    kubectl apply -f https://raw.githubusercontent.com/sacrede-mgn/home-infra/refs/heads/main/kubernetes/applicationset.yaml
+    kubectl apply -f https://raw.githubusercontent.com/sacrede-mgn/home-infra/refs/heads/main/kubernetes/root-app.yaml
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   register: appset_apply
