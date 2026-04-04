@@ -10,8 +10,70 @@ spec:
     chart: traefik
     targetRevision: v26.1.0
     helm:
-      valueFiles:
-        - ./values.yaml
+      # Убираем valueFiles, так как значения встроены прямо сюда
+      values: |
+        # values.yaml для Traefik (Helm chart v26.1.0)
+
+        service:
+          enabled: true
+          type: LoadBalancer
+          annotations:
+            metallb.universe.tf/address-pool: first-pool
+            metallb.universe.tf/loadBalancerIPs: 192.168.4.241
+
+        ports:
+          web:
+            port: 8000
+            expose: true
+            containerPort: 8000
+          websecure:
+            port: 8443
+            expose: true
+            containerPort: 8443
+
+        additionalArguments:
+          - "--entrypoints.web.address=:8000"
+          - "--entrypoints.websecure.address=:8443"
+
+        logs:
+          access:
+            enabled: true
+            addInternals: true
+          general:
+            level: INFO
+
+        experimental:
+          plugins:
+            crowdsec-bouncer-traefik-plugin:
+              moduleName: github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+              version: v1.3.0
+
+        providers:
+          kubernetesCRD:
+            enabled: true
+            allowCrossNamespace: true
+          kubernetesIngress:
+            enabled: true
+            publishedService:
+              enabled: true
+
+        securityContext:
+          capabilities:
+            drop: [ALL]
+            add: [NET_BIND_SERVICE]
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          runAsGroup: 65534
+
+        # Необязательно: можно добавить ресурсы, если нужно
+        # resources:
+        #   requests:
+        #     cpu: 100m
+        #     memory: 128Mi
+        #   limits:
+        #     cpu: 500m
+        #     memory: 256Mi
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
