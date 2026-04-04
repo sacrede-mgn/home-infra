@@ -1,0 +1,52 @@
+---
+# ===== Генерация join-команды на мастере =====
+- name: "🎫 Generate join command on master"
+  ansible.builtin.command: kubeadm token create --print-join-command --ttl 1h
+  register: join_command
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  run_once: true
+  changed_when: false
+
+- name: "💾 Store join command as fact on master"
+  ansible.builtin.set_fact:
+    k8s_join_command: "{{ join_command.stdout }}"
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  delegate_facts: true
+  run_once: true
+
+# ===== Проверка, не присоединён ли уже узел =====
+- name: "🔍 Check if node is already part of cluster"
+  ansible.builtin.shell: |
+    kubectl get nodes -o name | grep -q "node/{{ ansible_hostname }}"
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  delegate_to: "{{ groups['kube-master'][0] }}"
+  register: node_exists
+  failed_when: false
+  changed_when: false
+
+# ===== Присоединение, только если узел ещё не в кластере =====
+- name: "🔗 Join worker node to cluster"
+  ansible.builtin.command: "{{ hostvars[groups['kube-master'][0]]['k8s_join_command'] }}"
+  when: 
+    - node_exists.rc is defined
+    - node_exists.rc != 0
+    - hostvars[groups['kube-master'][0]]['k8s_join_command'] is defined
+  async: 300
+  poll: 0
+  register: join_async
+
+- name: "⏳ Wait for join to complete"
+  ansible.builtin.async_status:
+    jid: "{{ join_async.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 60
+  delay: 5
+  when: 
+    - join_async is defined
+    - join_async.ansible_job_id is defined
+
+- name: "✅ Verify node joined successfully"
+  ansible.builtin.debug:
+    msg: "Worker node {{ inventory_hostname }} join completed: {{ job_result.result.stdout if job_result.result is defined else 'already joined or skipped' }}"

@@ -1,0 +1,62 @@
+---
+- name: Ensure /etc/bash.bashrc exists
+  ansible.builtin.file:
+    path: /etc/bash.bashrc
+    state: touch
+    mode: '0644'
+
+- name: Check if LS_COLORS settings are already added
+  ansible.builtin.shell:
+    cmd: grep -q "LS_COLORS='di=01;34:ln=01;36:so=01;35:pi=01;33'" /etc/bash.bashrc
+  register: lscolors_check
+  failed_when: false
+  changed_when: false
+
+- name: Add LS_COLORS settings to /etc/bash.bashrc
+  ansible.builtin.blockinfile:
+    path: /etc/bash.bashrc
+    marker: "# {mark} ANSIBLE MANAGED LS_COLORS"
+    block: |
+      # Организованная по категориям (ИСПРАВЛЕННАЯ)
+      export LS_COLORS='di=01;34:ln=01;36:so=01;35:pi=01;33'
+      
+      # 1. КОД (зеленый) - раскрываем ВСЕ расширения
+      LS_COLORS="$LS_COLORS:*.sh=01;32:*.bash=01;32:*.zsh=01;32:*.py=01;32"
+      LS_COLORS="$LS_COLORS:*.js=01;32:*.ts=01;32:*.php=01;32:*.pl=01;32"
+      LS_COLORS="$LS_COLORS:*.rb=01;32:*.go=01;32:*.java=01;32:*.c=01;32"
+      LS_COLORS="$LS_COLORS:*.h=01;32:*.cpp=01;32:*.hpp=01;32:*.cs=01;32:*.sql=01;32"
+      
+      # 2. КОНФИГИ (желтый)
+      LS_COLORS="$LS_COLORS:*.yml=01;33:*.yaml=01;33:*.json=00;33"
+      LS_COLORS="$LS_COLORS:*.conf=00;33:*.cfg=00;33:*.ini=00;33:*.toml=00;33"
+      
+      # 3. ВЕБ (фиолетовый)
+      LS_COLORS="$LS_COLORS:*.html=00;35:*.htm=00;35:*.css=00;35"
+      LS_COLORS="$LS_COLORS:*.scss=00;35:*.sass=00;35:*.xml=00;35:*.xsl=00;35"
+      
+      # 4. ДОКУМЕНТЫ (синий)
+      LS_COLORS="$LS_COLORS:*.pdf=01;34:*.doc=01;34:*.docx=01;34:*.odt=01;34"
+      LS_COLORS="$LS_COLORS:*.xls=01;34:*.xlsx=01;34:*.ppt=01;34:*.pptx=01;34"
+      
+      # 5. ИЗОБРАЖЕНИЯ (розовый)
+      LS_COLORS="$LS_COLORS:*.jpg=01;35:*.jpeg=01;35:*.png=01;35:*.gif=01;35"
+      LS_COLORS="$LS_COLORS:*.bmp=01;35:*.svg=01;35"
+      
+      # 6. АРХИВЫ (красный)
+      LS_COLORS="$LS_COLORS:*.tar=01;31:*.tgz=01;31:*.zip=01;31:*.gz=01;31"
+      LS_COLORS="$LS_COLORS:*.bz2=01;31:*.rar=01;31:*.7z=01;31"
+      
+      # 7. МЕДИА (голубой)
+      LS_COLORS="$LS_COLORS:*.mp3=00;36:*.wav=00;36:*.flac=00;36:*.mp4=00;36"
+      LS_COLORS="$LS_COLORS:*.avi=00;36:*.mkv=00;36:*.mov=00;36"
+      
+      # 8. ЛОГИ (красный, не жирный)
+      LS_COLORS="$LS_COLORS:*.log=00;31:*.err=00;31"
+      
+      # 9. ВРЕМЕННЫЕ (серый)
+      LS_COLORS="$LS_COLORS:*.tmp=00;37:*.swp=00;37:*.bak=00;37:*.swo=00;37"
+      
+      # Экспортируем финальную переменную
+      export LS_COLORS
+  when: lscolors_check.rc != 0
+  notify: Reload current session

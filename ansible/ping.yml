@@ -1,0 +1,19 @@
+---
+- name: "🔄 Проверка подключения к хостам Kubernetes кластера"
+  hosts: kube-cluster                  # Цель: все хосты из inventory-файла
+  gather_facts: no
+
+  tasks:
+    - name: "📡 Отправляем test ping на хост"
+      ansible.builtin.ping:   # Используем модуль ping
+      register: ping_result   # Записываем результат задачи в переменную
+
+    - name: "✅ Выводим статус подключения"
+      ansible.builtin.debug:
+        msg: "Хост {{ inventory_hostname }} ({{ ansible_host }}) - ДОСТУПЕН ✅"
+      when: ping_result is succeeded # Выводим это сообщение, если ping прошел успешно
+
+    - name: "❌ Выводим статус ошибки"
+      debug:
+        msg: "Хост {{ inventory_hostname }} ({{ ansible_host }}) - НЕДОСТУПЕН ❌"
+      when: ping_result is failed # Выводим это сообщение, если ping не удался

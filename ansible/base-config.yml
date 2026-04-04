@@ -1,0 +1,7 @@
+---
+- name: Base config
+  hosts: all
+  become: yes
+  
+  roles:
+    - term-colors

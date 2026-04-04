@@ -1,0 +1,36 @@
+# -----------------------------------------------------------------------------
+# containerd config file
+# -----------------------------------------------------------------------------
+
+version = 2
+
+# -----------------------------------------------------------------------------
+# Root directory for containerd persistent data
+# -----------------------------------------------------------------------------
+root = "/var/lib/containerd"
+
+# -----------------------------------------------------------------------------
+# Root directory for containerd state data
+# -----------------------------------------------------------------------------
+state = "/run/containerd"
+
+# -----------------------------------------------------------------------------
+# Plugin configuration
+# -----------------------------------------------------------------------------
+[plugins]
+
+  # ---------------------------------------------------------------------------
+  # IO and task management configuration
+  # ---------------------------------------------------------------------------
+  [plugins."io.containerd.grpc.v1.cri"]
+    # --- 8< --- сокращенный конфиг для примера --- 8< ---
+    
+    # -------------------------------------------------------------------------
+    # cgroup management configuration
+    # -------------------------------------------------------------------------
+    [plugins."io.containerd.grpc.v1.cri".containerd]
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
+        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+          runtime_type = "io.containerd.runc.v2"
+          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+            SystemdCgroup = true  # <- ВАЖНО: меняем на true

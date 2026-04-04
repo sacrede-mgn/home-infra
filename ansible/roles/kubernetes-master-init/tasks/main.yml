@@ -1,0 +1,70 @@
+---
+- name: Initialize Kubernetes cluster
+  ansible.builtin.command: kubeadm init 
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Create .kube directory
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0750'
+
+
+- name: Copy kubeconfig to user directory
+  ansible.builtin.copy:
+    src: /etc/kubernetes/admin.conf
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    remote_src: yes
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+
+- name: Set correct ownership on kubeconfig
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.kube/config"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+
+
+# ===== Проверка доступности API =====
+- name: "⏳ Wait for Kubernetes API server"
+  ansible.builtin.command: kubectl cluster-info
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: api_ready
+  until: api_ready.rc == 0
+  retries: 30
+  delay: 5
+
+
+# ===== Calico CNI =====
+- name: "🌐 Install Calico CNI plugin"
+  ansible.builtin.command: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/calico.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+
+- name: "⏳ Wait for Calico to be ready"
+  ansible.builtin.command: kubectl wait --for=condition=ready pod -l k8s-app=calico-node -n kube-system --timeout=300s
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+
+
+- name: "✅ Verify Calico installation"
+  ansible.builtin.command: kubectl get pods -n kube-system -l k8s-app=calico-node
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: calico_status
+
+- name: "📋 Display Calico status"
+  ansible.builtin.debug:
+    msg: "Calico pods status: {{ calico_status.stdout }}"
+
+- name: "⏳ Wait for all nodes to be Ready"
+  ansible.builtin.command: kubectl wait --for=condition=Ready node --all --timeout=300s
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf

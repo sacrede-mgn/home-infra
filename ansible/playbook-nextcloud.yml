@@ -1,0 +1,8 @@
+---
+  - name: ansible-master
+    become: true
+    hosts: nextcloud 
+
+    roles:
+      - docker
+      - nextcloud

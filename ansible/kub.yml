@@ -1,0 +1,28 @@
+---
+- name: Configure Kubernetes Cluster (all nodes)
+  hosts: kube-cluster
+  become: true
+  vars_files:
+    - vars-kub.yml
+  roles:
+    - kubernetes
+
+- name: Initialize Kubernetes Master
+  hosts: kube-master
+  become: true
+  roles:
+    - kubernetes-master-init
+
+- name: Join worker nodes
+  hosts: kube-node
+  become: true
+  vars:
+    k8s_join_command: "{{ hostvars[groups['kube-master'][0]]['k8s_join_command'] }}"
+  roles:
+    - worker-join
+
+- name: Install cluster addons
+  hosts: kube-master
+  become: true
+  roles:
+    - kubernetes-master-addons

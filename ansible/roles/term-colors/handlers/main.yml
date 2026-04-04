@@ -1,0 +1,9 @@
+---
+- name: Reload current session
+  ansible.builtin.shell:
+    cmd: |
+      # Update variable for current session
+      if [ -f /etc/bash.bashrc ]; then
+        . /etc/bash.bashrc
+      fi
+  listen: Reload current session

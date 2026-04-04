@@ -1,0 +1,31 @@
+---
+- name: Deploy custom rsyslog.conf to all servers
+  hosts: all  # Применяется ко всем хостам из инвентаря
+  become: true  # Требуются права root
+  vars:
+    source_rsyslog_conf: "files/rsyslog.conf"  # Путь к файлу на управляющей машине
+
+  tasks:
+    - name: Copy rsyslog.conf to /etc/
+      copy:
+        src: "{{ source_rsyslog_conf }}"
+        dest: /etc/rsyslog.conf
+        owner: root
+        group: root
+        mode: 0644
+        backup: yes  # Создаёт бэкап старого файла (если он был)
+
+    - name: Restart rsyslog service (если файл изменился)
+      service:
+        name: rsyslog
+        state: restarted
+
+    - name: Verify rsyslog status
+      command: systemctl is-active rsyslog
+      register: rsyslog_status
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Show rsyslog status
+      debug:
+        var: rsyslog_status.stdout

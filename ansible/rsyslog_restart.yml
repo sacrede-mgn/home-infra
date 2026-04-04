@@ -1,0 +1,17 @@
+---
+- name: restart rsyslog
+  hosts: all  # Применяется ко всем хостам из инвентаря
+  become: true  # Требуются права root
+  tasks:
+    - name: Install rsyslog
+      package:
+        name: rsyslog
+        state: present
+    - name: Restart rsyslog service
+      service:
+        name: rsyslog
+        state: started
+    - name: Restart rsyslog service
+      service:
+        name: rsyslog
+        state: restarted
