@@ -7,13 +7,19 @@ service:
     metallb.universe.tf/address-pool: first-pool
     metallb.universe.tf/loadBalancerIPs: 192.168.4.241
 
+additionalArguments:
+  - "--entrypoints.web.address=:8000"
+  - "--entrypoints.websecure.address=:8443"
+
 ports:
   web:
     port: 8000
     expose: true
+    containerPort: 8000
   websecure:
     port: 8443
     expose: true
+    containerPort: 8443
 
 logs:
   access:
