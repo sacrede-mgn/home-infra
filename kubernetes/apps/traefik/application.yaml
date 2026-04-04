@@ -11,7 +11,7 @@ spec:
     targetRevision: v26.1.0
     helm:
       valueFiles:
-        - https://raw.githubusercontent.com/sacrede-mgn/home-infra/refs/heads/main/kubernetes/apps/traefik/values.yaml
+        - ./values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
