@@ -15,7 +15,7 @@ spec:
           enabled: true
           type: LoadBalancer          
           annotations:
-            metallb.universe.tf/address-pool: public-pool # 
+            metallb.universe.tf/address-pool: first-pool 
             metallb.universe.tf/loadBalancerIPs: 192.168.4.241
         ports:
           web:
@@ -30,7 +30,6 @@ spec:
             addInternals: true
           general:
             level: INFO
-        # Включение поддержки плагинов (необходимо для CrowdSec)
         experimental:
           plugins:
             crowdsec-bouncer-traefik-plugin:
