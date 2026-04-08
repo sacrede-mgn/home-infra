@@ -5,3 +5,5 @@ resources:
   - headlamp/application.yaml
   - home-ingress/application.yaml
   - traefik/application.yaml
+  - crowdsec/application.yaml
+  - teamspeak/application.yaml
