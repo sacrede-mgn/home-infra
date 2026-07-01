@@ -8,48 +8,48 @@ resource "proxmox_vm_qemu" "cloudinit" {
     agent = 0
     os_type = "cloud-init"
     cpu {
-        cores = 4
-        sockets = 1
-        type = "host"
+      cores = 4
+      sockets = 1
+      type = "host"
     }
     memory = 4096
     scsihw = "virtio-scsi-single"
     onboot = true
     serial {
-           id   = 0
-           type = "socket"
+      id   = 0
+      type = "socket"
     }
 
      vga {
-         type = "serial0" # Refers to the serial port with id 0
+       type = "serial0" # Refers to the serial port with id 0
      } 
 
     disks {
-        ide {
-            ide3 {
-                cloudinit {
-                    storage = "local-data"
-                }
-            }
+      ide {
+        ide3 {
+          cloudinit {
+            storage = "local-data"
+          }
         }
-        scsi {
-            scsi0 {
-                disk {
-                    format = "qcow2"
-                    size            = 60
-                    cache           = "writeback"
-                    storage         = "local-data"
-                    iothread        = true
-                    discard         = true
-                }
-            }
+      }
+      scsi {
+        scsi0 {
+          disk {
+            format = "qcow2"
+              size            = 60
+              cache           = "writeback"
+              storage         = "local-data"
+              iothread        = true
+              discard         = true
+          }
         }
+      }
     }
 
     network {
-        id = 0
-        model = "virtio"
-        bridge = "vmbr0"
+      id = 0
+      model = "virtio"
+      bridge = "vmbr0"
     }
 
     boot = "order=scsi0"
@@ -79,40 +79,40 @@ resource "proxmox_vm_qemu" "cloudinit2" {
     scsihw = "virtio-scsi-single"
     onboot = true
     serial {
-           id   = 0
-           type = "socket"
+      id   = 0
+      type = "socket"
     }
 
      vga {
-         type = "serial0" # Refers to the serial port with id 0
+       type = "serial0" # Refers to the serial port with id 0
      } 
 
     disks {
-        ide {
-            ide3 {
-                cloudinit {
-                    storage = "local-data"
-                }
+      ide {
+        ide3 {
+            cloudinit {
+              storage = "local-data"
             }
         }
-        scsi {
-            scsi0 {
-                disk {
-                    format = "qcow2"
-                    size            = 200
-                    cache           = "writeback"
-                    storage         = "local-data"
-                    iothread        = true
-                    discard         = true
-                }
-            }
+      }
+      scsi {
+        scsi0 {
+          disk {
+            format = "qcow2"
+            size            = 200
+            cache           = "writeback"
+            storage         = "local-data"
+            iothread        = true
+            discard         = true
+          }
         }
+      }
     }
 
     network {
-        id = 0
-        model = "virtio"
-        bridge = "vmbr0"
+      id = 0
+      model = "virtio"
+      bridge = "vmbr0"
     }
 
     boot = "order=scsi0"
@@ -137,48 +137,48 @@ resource "proxmox_vm_qemu" "cloudinit3" {
     os_type = "cloud-init"
     
     cpu {
-        cores = 4
-        sockets = 1
-        type = "host"
+      cores = 4
+      sockets = 1
+      type = "host"
     }
     memory = 8000
     scsihw = "virtio-scsi-single"
     onboot = true
     serial {
-           id   = 0
-           type = "socket"
+      id   = 0
+      type = "socket"
     }
 
      vga {
-         type = "serial0" # Refers to the serial port with id 0
+       type = "serial0" # Refers to the serial port with id 0
      } 
 
     disks {
-        ide {
-            ide3 {
-                cloudinit {
-                    storage = "local-data"
-                }
-            }
+      ide {
+        ide3 {
+          cloudinit {
+            storage = "local-data"
+          }
         }
-        scsi {
-            scsi0 {
-                disk {
-                    format = "qcow2"
-                    size            = 60
-                    cache           = "writeback"
-                    storage         = "local-data"
-                    iothread        = true
-                    discard         = true
-                }
-            }
+      }
+      scsi {
+        scsi0 {
+          disk {
+            format = "qcow2"
+            size            = 60
+            cache           = "writeback"
+            storage         = "local-data"
+            iothread        = true
+            discard         = true
+          }
         }
+      }
     }
 
     network {
-        id = 0
-        model = "virtio"
-        bridge = "vmbr0"
+      id = 0
+      model = "virtio"
+      bridge = "vmbr0"
     }
 
     boot = "order=scsi0"
