@@ -97,6 +97,80 @@
       Access ArgoCD UI via LoadBalancer IP or port-forward.
   tags: addons
 
+# ===== Sealed Secrets =====
+- name: "🔐 Install Sealed Secrets controller"
+  ansible.builtin.command: kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.27.1/controller.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: sealed_secrets_install
+  changed_when: "'created' in sealed_secrets_install.stdout or 'configured' in sealed_secrets_install.stdout"
+  tags: addons
+
+- name: "⏳ Wait for Sealed Secrets controller pod"
+  ansible.builtin.command: kubectl wait --for=condition=ready pod -l name=sealed-secrets-controller -n kube-system --timeout=300s
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  tags: addons
+
+- name: "🔧 Install kubeseal CLI"
+  vars:
+    kubeseal_version: "0.27.1"
+  block:
+    - name: Download kubeseal archive
+      ansible.builtin.get_url:
+        url: "https://github.com/bitnami-labs/sealed-secrets/releases/download/v{{ kubeseal_version }}/kubeseal-{{ kubeseal_version }}-linux-amd64.tar.gz"
+        dest: "/tmp/kubeseal-{{ kubeseal_version }}.tar.gz"
+        mode: '0644'
+
+    - name: Extract kubeseal binary
+      ansible.builtin.unarchive:
+        src: "/tmp/kubeseal-{{ kubeseal_version }}.tar.gz"
+        dest: /tmp
+        remote_src: yes
+        creates: /tmp/kubeseal
+
+    - name: Install kubeseal to system path
+      ansible.builtin.copy:
+        src: /tmp/kubeseal
+        dest: /usr/local/bin/kubeseal
+        mode: '0755'
+        remote_src: yes
+
+    - name: Clean up temporary files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "/tmp/kubeseal-{{ kubeseal_version }}.tar.gz"
+        - /tmp/kubeseal
+  tags: addons
+
+- name: "🔑 Retrieve Sealed Secrets public certificate"
+  ansible.builtin.command: kubeseal --fetch-cert --controller-namespace kube-system --controller-name sealed-secrets-controller
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: sealed_secrets_cert
+  changed_when: false
+  tags: addons
+
+
+- name: "📁 Save public certificate for future use"
+  ansible.builtin.copy:
+    content: "{{ sealed_secrets_cert.stdout }}"
+    dest: "/home/{{ ansible_user }}/sealed-secrets-cert.pem"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0644'
+  tags: addons
+
+- name: "📋 Sealed Secrets installation summary"
+  ansible.builtin.debug:
+    msg:
+      - "Sealed Secrets controller installed and ready."
+      - "Public certificate saved to /home/{{ ansible_user }}/sealed-secrets-cert.pem"
+      - "Use `kubeseal --cert /home/{{ ansible_user }}/sealed-secrets-cert.pem` to seal your secrets."
+  tags: addons
+
 # ===== Настройка ArgoCD как LoadBalancer =====
 - name: "🔄 Patch ArgoCD server service to LoadBalancer"
   ansible.builtin.command: kubectl patch svc argocd-server -n argocd -p '{"spec":{"type":"LoadBalancer"}}'
