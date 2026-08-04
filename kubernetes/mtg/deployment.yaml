@@ -21,16 +21,14 @@ spec:
           ports:
             - containerPort: 3128
               name: mtproto
-          volumeMounts:
-            - name: config
-              mountPath: /config.toml
-              subPath: config.toml
           env:
             - name: MTG_SECRET
               valueFrom:
                 secretKeyRef:
                   name: mtg-secret
                   key: secret
+            - name: MTG_BIND
+              value: "0.0.0.0:3128"
           readinessProbe:
             tcpSocket:
               port: 3128
@@ -41,7 +39,3 @@ spec:
               port: 3128
             initialDelaySeconds: 15
             periodSeconds: 20
-      volumes:
-        - name: config
-          configMap:
-            name: mtg-config
