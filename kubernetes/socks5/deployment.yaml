@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: socks5-proxy
+  namespace: socks5-proxy
+  labels:
+    app: socks5-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: socks5-proxy
+  template:
+    metadata:
+      labels:
+        app: socks5-proxy
+    spec:
+      containers:
+      - name: socks5
+        image: 3proxy/3proxy:0.9.7
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 1080
+          name: socks5
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/3proxy
+          readOnly: true
+      volumes:
+      - name: config
+        secret:
+          secretName: socks5-config

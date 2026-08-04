@@ -10,7 +10,6 @@ spec:
     chart: traefik
     targetRevision: v26.1.0
     helm:
-      # Убираем valueFiles, так как значения встроены прямо сюда
       values: |
         # values.yaml для Traefik (Helm chart v26.1.0)
 
@@ -30,10 +29,15 @@ spec:
             port: 8443
             expose: true
             containerPort: 8443
+          socks5:
+            port: 1080
+            expose: true
+            containerPort: 1080
 
         additionalArguments:
           - "--entrypoints.web.address=:8000"
           - "--entrypoints.websecure.address=:8443"
+          - "--entrypoints.socks5.address=:1080"
 
         logs:
           access:
@@ -66,14 +70,6 @@ spec:
           runAsUser: 65534
           runAsGroup: 65534
 
-        # Необязательно: можно добавить ресурсы, если нужно
-        # resources:
-        #   requests:
-        #     cpu: 100m
-        #     memory: 128Mi
-        #   limits:
-        #     cpu: 500m
-        #     memory: 256Mi
   destination:
     server: https://kubernetes.default.svc
     namespace: traefik
