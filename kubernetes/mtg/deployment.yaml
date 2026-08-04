@@ -29,6 +29,8 @@ spec:
                   key: secret
             - name: MTG_BIND
               value: "0.0.0.0:3128"
+            - name: MTG_IP_BLOCKLIST_ENABLED
+              value: "false" 
           readinessProbe:
             tcpSocket:
               port: 3128
