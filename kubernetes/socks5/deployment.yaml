@@ -17,15 +17,18 @@ spec:
     spec:
       containers:
       - name: socks5
-        image: 3proxy/3proxy:0.9.7
+        image: gogost/gost:latest
         imagePullPolicy: IfNotPresent
+        args:
+          - "-C"
+          - "/etc/gost/gost.yaml"
         ports:
         - containerPort: 1080
           name: socks5
           protocol: TCP
         volumeMounts:
         - name: config
-          mountPath: /etc/3proxy
+          mountPath: /etc/gost
           readOnly: true
       volumes:
       - name: config
