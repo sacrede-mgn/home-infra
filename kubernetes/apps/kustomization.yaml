@@ -6,4 +6,3 @@ resources:
   - home-ingress/application.yaml
   - traefik/application.yaml
   - teamspeak/application.yaml
-  - mtg/application.yaml
