@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mtg
+  namespace: mtg-proxy
+  labels:
+    app: mtg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mtg
+  template:
+    metadata:
+      labels:
+        app: mtg
+    spec:
+      containers:
+        - name: mtg
+          image: nineseconds/mtg:2
+          ports:
+            - containerPort: 3128
+              name: mtproto
+          volumeMounts:
+            - name: config
+              mountPath: /config.toml
+              subPath: config.toml
+          env:
+            - name: MTG_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: mtg-secret
+                  key: secret
+          readinessProbe:
+            tcpSocket:
+              port: 3128
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 3128
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: config
+          configMap:
+            name: mtg-config
