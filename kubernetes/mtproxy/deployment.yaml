@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mtproxy
+  namespace: mtproxy
+  labels:
+    app: mtproxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mtproxy
+  template:
+    metadata:
+      labels:
+        app: mtproxy
+    spec:
+      containers:
+      - name: telemt
+        image: ghcr.io/samnet-dev/mtproxymax-telemt:latest
+        imagePullPolicy: Always
+        args:
+          - "--config"
+          - "/etc/telemt/config.toml"
+        ports:
+        - containerPort: 8443
+          name: mtproto
+          protocol: TCP
+        volumeMounts:
+        - name: config
+          mountPath: /etc/telemt
+          readOnly: true
+      volumes:
+      - name: config
+        secret:
+          secretName: mtproxy-config

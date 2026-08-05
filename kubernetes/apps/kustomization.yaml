@@ -5,4 +5,5 @@ resources:
   - headlamp/application.yaml
   - home-ingress/application.yaml
   - traefik/application.yaml
-  - teamspeak/application.yaml
+  - teamspeak/application.yaml  
+  - mtproxy/application.yaml

@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mtproxy
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/sacrede-mgn/home-infra.git'
+    targetRevision: HEAD
+    path: kubernetes/mtproxy
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: mtproxy
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
