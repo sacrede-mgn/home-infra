@@ -8,9 +8,10 @@ metadata:
     metallb.universe.tf/loadBalancerIPs: 192.168.4.245
 spec:
   type: LoadBalancer
+  externalTrafficPolicy: Local
   selector:
     app: mtproxy
   ports:
-  - port: 8443
+  - port: 443
     targetPort: 8443
     protocol: TCP
