@@ -27,10 +27,14 @@ spec:
           name: mtproto
           protocol: TCP
         volumeMounts:
+        - name: tmp
+          mountPath: /tmp
         - name: config
           mountPath: /etc/telemt
           readOnly: true
       volumes:
+      - name: tmp
+        emptyDir: {}
       - name: config
         secret:
           secretName: mtproxy-config
