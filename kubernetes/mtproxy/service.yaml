@@ -3,13 +3,14 @@ kind: Service
 metadata:
   name: mtproxy-svc
   namespace: mtproxy
+  annotations:
+    metallb.universe.tf/address-pool: first-pool
+    metallb.universe.tf/loadBalancerIPs: 192.168.4.242
 spec:
-  type: NodePort
-  externalTrafficPolicy: Local
+  type: LoadBalancer
   selector:
     app: mtproxy
   ports:
   - port: 8443
     targetPort: 8443
-    nodePort: 31443
     protocol: TCP
