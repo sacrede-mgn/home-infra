@@ -5,6 +5,7 @@ metadata:
   namespace: mtproxy
 spec:
   type: NodePort
+  externalTrafficPolicy: Local
   selector:
     app: mtproxy
   ports:
