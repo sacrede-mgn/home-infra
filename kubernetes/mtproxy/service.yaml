@@ -5,7 +5,7 @@ metadata:
   namespace: mtproxy
   annotations:
     metallb.universe.tf/address-pool: first-pool
-    metallb.universe.tf/loadBalancerIPs: 192.168.4.242
+    metallb.universe.tf/loadBalancerIPs: 192.168.4.245
 spec:
   type: LoadBalancer
   selector:
