@@ -15,26 +15,39 @@ spec:
       labels:
         app: mtproxy
     spec:
+      initContainers:
+      - name: copy-config
+        image: busybox:latest
+        command:
+          - sh
+          - -c
+          - "cp /secret-data/config.toml /etc/telemt/config.toml"
+        volumeMounts:
+        - name: secret-data
+          mountPath: /secret-data
+          readOnly: true
+        - name: telemt-data
+          mountPath: /etc/telemt
       containers:
       - name: telemt
         image: ghcr.io/samnet-dev/mtproxymax-telemt:latest
         imagePullPolicy: Always
         args:
-          - "--config"
           - "/etc/telemt/config.toml"
         ports:
         - containerPort: 8443
           name: mtproto
           protocol: TCP
         volumeMounts:
+        - name: telemt-data
+          mountPath: /etc/telemt
         - name: tmp
           mountPath: /tmp
-        - name: config
-          mountPath: /etc/telemt
-          readOnly: true
       volumes:
-      - name: tmp
-        emptyDir: {}
-      - name: config
+      - name: secret-data
         secret:
           secretName: mtproxy-config
+      - name: telemt-data
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
