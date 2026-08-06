@@ -92,6 +92,7 @@ spec:
       - name: tls
         secret:
           secretName: tuwunel-tls
+          optional: true
       - name: data
         persistentVolumeClaim:
           claimName: tuwunel-data
