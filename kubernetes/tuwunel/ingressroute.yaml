@@ -1,0 +1,45 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: tuwunel-redirect-https
+  namespace: tuwunel
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: tuwunel-http
+  namespace: tuwunel
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`home.onishenko.tk`) && (PathPrefix(`/_matrix`) || PathPrefix(`/_synapse`) || PathPrefix(`/.well-known/matrix`))
+      kind: Rule
+      middlewares:
+        - name: tuwunel-redirect-https
+          namespace: tuwunel
+      services:
+        - name: tuwunel
+          port: 8008
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: tuwunel-https
+  namespace: tuwunel
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`home.onishenko.tk`) && (PathPrefix(`/_matrix`) || PathPrefix(`/_synapse`) || PathPrefix(`/.well-known/matrix`))
+      kind: Rule
+      services:
+        - name: tuwunel
+          port: 8008
+  tls:
+    secretName: tuwunel-tls

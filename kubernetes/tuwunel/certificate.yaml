@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tuwunel-tls
+  namespace: tuwunel
+spec:
+  secretName: tuwunel-tls
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+  dnsNames:
+    - home.onishenko.tk

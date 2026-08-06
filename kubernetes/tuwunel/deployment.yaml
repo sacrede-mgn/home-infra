@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tuwunel
+  namespace: tuwunel
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tuwunel
+  template:
+    metadata:
+      labels:
+        app: tuwunel
+    spec:
+      securityContext:
+        fsGroup: 65532
+      initContainers:
+      - name: wait-for-cert
+        image: alpine:3.19
+        command:
+        - sh
+        - -c
+        - |
+          echo "Ожидание TLS сертификата..."
+          until [ -s /tls/tls.crt ] && [ -s /tls/tls.key ]; do
+            echo "  Сертификат ещё не готов, ждём..."
+            sleep 5
+          done
+          echo "TLS сертификат готов!"
+        volumeMounts:
+        - name: tls
+          mountPath: /tls
+          readOnly: true
+      containers:
+      - name: tuwunel
+        image: ghcr.io/matrix-construct/tuwunel:latest
+        imagePullPolicy: Always
+        args:
+          - "-c"
+          - "/etc/tuwunel/tuwunel.toml"
+        ports:
+        - containerPort: 8008
+          name: http
+        env:
+        - name: TUWUNEL_GLOBAL__EMERGENCY_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tuwunel-secrets
+              key: emergency_password
+        volumeMounts:
+        - name: config
+          mountPath: /etc/tuwunel/tuwunel.toml
+          subPath: tuwunel.toml
+          readOnly: true
+        - name: secrets
+          mountPath: /etc/tuwunel/secrets
+          readOnly: true
+        - name: tls
+          mountPath: /etc/tuwunel/tls
+          readOnly: true
+        - name: data
+          mountPath: /var/lib/tuwunel
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        readinessProbe:
+          httpGet:
+            path: /_matrix/client/versions
+            port: 8008
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /_matrix/client/versions
+            port: 8008
+          initialDelaySeconds: 30
+          periodSeconds: 30
+      volumes:
+      - name: config
+        configMap:
+          name: tuwunel-config
+      - name: secrets
+        secret:
+          secretName: tuwunel-secrets
+      - name: tls
+        secret:
+          secretName: tuwunel-tls
+      - name: data
+        persistentVolumeClaim:
+          claimName: tuwunel-data

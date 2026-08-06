@@ -1,0 +1,101 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tuwunel-create-users
+  namespace: tuwunel
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: create-users
+        image: alpine:3.19
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          apk add --no-cache curl openssl jq
+
+          SHARED_SECRET=$(cat /etc/tuwunel/secrets/registration_shared_secret)
+          TUWUNEL_URL="http://tuwunel:8008"
+
+          echo "=== Ожидание запуска tuwunel ==="
+          until curl -sf "$TUWUNEL_URL/_matrix/client/versions" >/dev/null 2>&1; do
+            echo "  tuwunel ещё не готов, ждём..."
+            sleep 5
+          done
+          echo "=== Tuwunel готов! ==="
+
+          create_user() {
+            username="$1"
+            password="$2"
+            is_admin="$3"
+
+            echo "--- Создание пользователя: $username (admin: $is_admin) ---"
+            nonce=$(curl -sf "$TUWUNEL_URL/_synapse/admin/v1/register" | jq -r '.nonce')
+            if [ -z "$nonce" ] || [ "$nonce" = "null" ]; then
+              echo "  ОШИБКА: не удалось получить nonce"
+              return 1
+            fi
+
+            if [ "$is_admin" = "true" ]; then
+              admin_str="admin"
+            else
+              admin_str="notadmin"
+            fi
+
+            mac=$(printf '%s\0%s\0%s\0%s' "$nonce" "$username" "$password" "$admin_str" \
+              | openssl dgst -sha1 -hmac "$SHARED_SECRET" \
+              | awk '{print $NF}')
+
+            response=$(curl -s -w "\n%{http_code}" -X POST \
+              "$TUWUNEL_URL/_synapse/admin/v1/register" \
+              -H "Content-Type: application/json" \
+              -d "{\"nonce\":\"$nonce\",\"username\":\"$username\",\"displayname\":\"$username\",\"password\":\"$password\",\"admin\":$is_admin,\"mac\":\"$mac\"}")
+
+            http_code=$(echo "$response" | tail -1)
+            body=$(echo "$response" | head -n -1)
+
+            if [ "$http_code" = "200" ]; then
+              echo "  ✅ УСПЕХ: пользователь '$username' создан"
+            elif echo "$body" | jq -e '.errcode == "M_USER_IN_USE"' >/dev/null 2>&1; then
+              echo "  ⏭️  ПРОПУСК: пользователь '$username' уже существует"
+            else
+              echo "  ❌ ОШИБКА (HTTP $http_code): $body"
+              return 1
+            fi
+          }
+
+          create_user "admin" "$ADMIN_PASSWORD" "true"
+          create_user "user1" "$USER1_PASSWORD" "false"
+          create_user "user2" "$USER2_PASSWORD" "false"
+
+          echo "=== Готово! Все пользователи созданы. ==="
+        env:
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tuwunel-secrets
+              key: admin_password
+        - name: USER1_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tuwunel-secrets
+              key: user1_password
+        - name: USER2_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: tuwunel-secrets
+              key: user2_password
+        volumeMounts:
+        - name: secrets
+          mountPath: /etc/tuwunel/secrets
+          readOnly: true
+      volumes:
+      - name: secrets
+        secret:
+          secretName: tuwunel-secrets
