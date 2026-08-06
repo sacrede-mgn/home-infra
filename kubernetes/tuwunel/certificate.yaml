@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: tuwunel-tls
   issuerRef:
-    name: letsencrypt
+    name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
     - home.onishenko.tk
