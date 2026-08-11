@@ -1,3 +1,4 @@
+---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
@@ -8,16 +9,21 @@ spec:
     sourceRange:
       - "192.168.4.0/24"
       - "10.0.0.0/8"
+
 ---
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
+apiVersion: cert-manager.io/v1
+kind: Certificate
 metadata:
-  name: synapse-admin-stripprefix
+  name: synapse-admin-tls
   namespace: tuwunel
 spec:
-  stripPrefix:
-    prefixes:
-      - /synapse
+  secretName: synapse-admin-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - synapse.onishenko.tk
+
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -28,15 +34,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`home.onishenko.tk`) && PathPrefix(`/synapse`)
-      kind: Rule
-      middlewares:
-        - name: synapse-admin-lan-only
-        - name: synapse-admin-stripprefix
-      services:
-        - name: synapse-admin
-          port: 80
-    - match: Host(`home.onishenko.tk`) && PathPrefix(`/static`)
+    - match: Host(`synapse.onishenko.tk`)
       kind: Rule
       middlewares:
         - name: synapse-admin-lan-only
@@ -44,4 +42,4 @@ spec:
         - name: synapse-admin
           port: 80
   tls:
-    secretName: tuwunel-tls
+    secretName: synapse-admin-tls
