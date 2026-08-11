@@ -1,0 +1,47 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: synapse-admin-lan-only
+  namespace: tuwunel
+spec:
+  ipAllowList:
+    sourceRange:
+      - "192.168.4.0/24"
+      - "10.0.0.0/8"
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: synapse-admin-stripprefix
+  namespace: tuwunel
+spec:
+  stripPrefix:
+    prefixes:
+      - /synapse
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: synapse-admin
+  namespace: tuwunel
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`home.onishenko.tk`) && PathPrefix(`/synapse`)
+      kind: Rule
+      middlewares:
+        - name: synapse-admin-lan-only
+        - name: synapse-admin-stripprefix
+      services:
+        - name: synapse-admin
+          port: 80
+    - match: Host(`home.onishenko.tk`) && PathPrefix(`/static`)
+      kind: Rule
+      middlewares:
+        - name: synapse-admin-lan-only
+      services:
+        - name: synapse-admin
+          port: 80
+  tls:
+    secretName: tuwunel-tls

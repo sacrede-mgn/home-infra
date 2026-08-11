@@ -7,3 +7,4 @@ resources:
   - traefik/application.yaml
   - teamspeak/application.yaml
   - tuwunel/application.yaml
+  - synapse-admin/application.yaml
