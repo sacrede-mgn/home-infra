@@ -45,8 +45,6 @@ spec:
         - containerPort: 8008
           name: http
         env:
-        - name: TUWUNEL_GLOBAL__PORT
-          value: "8008"
         - name: TUWUNEL_GLOBAL__EMERGENCY_PASSWORD
           valueFrom:
             secretKeyRef:
