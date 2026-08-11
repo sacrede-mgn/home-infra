@@ -38,7 +38,7 @@ spec:
             is_admin="$3"
 
             echo "--- Создание пользователя: $username (admin: $is_admin) ---"
-            nonce=$(curl -sf "$TUWUNEL_URL/_synapse/admin/v1/register" | jq -r '.nonce')
+            nonce=$(curl -sf -H "X-Forwarded-For: 127.0.0.1" "$TUWUNEL_URL/_synapse/admin/v1/register" | jq -r '.nonce')
             if [ -z "$nonce" ] || [ "$nonce" = "null" ]; then
               echo "  ОШИБКА: не удалось получить nonce"
               return 1
@@ -57,7 +57,8 @@ spec:
             response=$(curl -s -w "\n%{http_code}" -X POST \
               "$TUWUNEL_URL/_synapse/admin/v1/register" \
               -H "Content-Type: application/json" \
-              -d "{\"nonce\":\"$nonce\",\"username\":\"$username\",\"displayname\":\"$username\",\"password\":\"$password\",\"admin\":$is_admin,\"mac\":\"$mac\"}")
+              -H "X-Forwarded-For: 127.0.0.1" \
+              -d "{\"nonce\":\"$nonce\",\"username\":\"$username\",\"password\":\"$password\",\"admin\":$is_admin,\"mac\":\"$mac\"}")
 
             http_code=$(echo "$response" | tail -1)
             body=$(echo "$response" | head -n -1)
