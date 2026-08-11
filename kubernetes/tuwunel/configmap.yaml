@@ -11,6 +11,7 @@ data:
     address = ["0.0.0.0", "::"]
     port = 8008
     allow_registration = true
+    registration_token_file = "/etc/tuwunel/secrets/registration_token"
     registration_shared_secret_file = "/etc/tuwunel/secrets/registration_shared_secret"
     allow_federation = true
     ip_source = "rightmost_x_forwarded_for"
