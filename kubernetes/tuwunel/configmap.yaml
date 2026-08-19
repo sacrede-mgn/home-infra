@@ -6,7 +6,7 @@ metadata:
 data:
   tuwunel.toml: |
     [global]
-    server_name = "home.onishenko.tk"
+    server_name = "matrix.aonishchenko.ru"
     database_path = "/var/lib/tuwunel"
     address = ["0.0.0.0", "::"]
     port = 8008
@@ -19,11 +19,6 @@ data:
     log = "info"
     grant_admin_to_first_user = false
 
-    [global.tls]
-    certs = "/etc/tuwunel/tls/tls.crt"
-    key = "/etc/tuwunel/tls/tls.key"
-    dual_protocol = true
-
     [global.well_known]
-    client = "https://home.onishenko.tk"
-    server = "home.onishenko.tk:8448"
+    client = "https://matrix.aonishchenko.ru"
+    server = "matrix.aonishchenko.ru:8448"
